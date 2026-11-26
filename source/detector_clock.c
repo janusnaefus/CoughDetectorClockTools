@@ -29,6 +29,7 @@ static double utc_now(void){FILETIME ft;ULARGE_INTEGER n;GetSystemTimePreciseAsF
 #include <sys/ioctl.h>
 #include <sys/file.h>
 #include <errno.h>
+#include "detector_serial_access.h"
 static int port=-1;
 static double now(clockid_t id){struct timespec t;if(clock_gettime(id,&t))return -1;return t.tv_sec+t.tv_nsec/1e9;}
 static double monotonic(void){return now(CLOCK_MONOTONIC);}
@@ -114,8 +115,11 @@ static int discover(void){
     closedir(dir);return count;
 }
 static int open_port(void){
-    port=open(port_name,O_RDWR|O_NOCTTY|O_NONBLOCK|O_CLOEXEC);if(port<0)return 0;
-    if(flock(port,LOCK_EX|LOCK_NB)||ioctl(port,TIOCEXCL))return 0;
+    port=open(port_name,O_RDWR|O_NOCTTY|O_NONBLOCK|O_CLOEXEC);
+    if(port<0){detector_serial_open_error(stderr,port_name,errno);return 0;}
+    if(flock(port,LOCK_EX|LOCK_NB)||ioctl(port,TIOCEXCL)){
+        fprintf(stderr,"Serial exclusive access failed: %s. Close other serial users.\n",strerror(errno));return 0;
+    }
     struct termios t;if(tcgetattr(port,&t))return 0;cfmakeraw(&t);cfsetispeed(&t,B115200);cfsetospeed(&t,B115200);
     t.c_cflag|=CLOCAL|CREAD;t.c_cflag&=~CRTSCTS;t.c_cc[VMIN]=0;t.c_cc[VTIME]=0;
     if(tcsetattr(port,TCSANOW,&t))return 0;int bits=TIOCM_DTR;return ioctl(port,TIOCMBIS,&bits)==0;
@@ -184,12 +188,12 @@ int main(int argc,char **argv){
     }
     if(explicit_action>1){fputs("Choose one action.\n",stderr);return 2;}
     if(test){ok=self_test();puts(ok?"Protocol CRC/SHA/calendar/1024-phase self-test PASS":"Self-test FAILED");return !ok;}
-    puts("CoughDetector clock 2026-11-25. Finish recording and all file transfers first.");
+    puts("CoughDetector clock 2026-11-26. Finish recording and all file transfers first.");
     puts("Copy this tool to a local directory before running. Close the device in the file manager.");
     if(!set&&!status){char answer[32];printf("Type SET to set UTC once from this computer: ");fflush(stdout);if(!fgets(answer,sizeof answer,stdin)||strcmp(answer,"SET\n"))return 2;set=1;}
     int count=discover();if(count!=1){fprintf(stderr,"Expected one detector; found %d. Connect USB; with multiple detectors use --serial.\n",count);goto done;}
     strcpy(selected_uid,uid);printf("Detector %s on %s\n",uid,port_name);
-    if(!open_port()){fputs("Cannot exclusively open serial port. Close other users; Linux requires serial/dialout permission. No request sent.\n",stderr);goto done;}
+    if(!open_port()){fputs("Serial access/setup failed. No request sent.\n",stderr);goto done;}
     uint32_t sequence=(uint32_t)(utc_now()*1000)^(uint32_t)(monotonic()*1000000);if(!sequence)sequence=1;
     double first=utc_now();if(!exchange(0,sequence,0,before)){fputs("Status receipt failed. No set request sent.\n",stderr);goto done;}double last=utc_now();
     if(status){ok=offset(before,first,last);goto done;}

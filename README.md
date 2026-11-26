@@ -14,7 +14,7 @@ No Python or firmware development tools are required. This repository contains o
 
 ## Requirements
 
-The Windows executable is currently unsigned. Linux requires glibc 2.34 or newer and permission to access the detector's serial port. On many distributions this is granted through the `dialout` group; a group change needs a new login. The current launcher does not change system permissions automatically. Do not run it from the detector's file-browser mount.
+The Windows executable is currently unsigned. Linux requires glibc 2.34 or newer and permission to access the detector's serial port. If access is denied, the tool checks the actual device node's permissions and group. When group membership would resolve access, it prints an administrator command for that group and your username; ask your administrator to approve it, then fully log out and log in again. Otherwise it asks for a permissions/ACL/udev review. It never assumes `dialout`, changes permissions or runs `sudo` automatically. Do not run it from the detector's file-browser mount.
 
 The tool supports the CoughDetector clock protocol on USB identity 1209:0001. `--status` reads the clock; `--self-test` checks the local protocol implementation without accessing a device. For unusual multi-device setups, `--serial` accepts the detector's USB serial number (its MCU identifier).
 
@@ -26,4 +26,4 @@ The device stores UTC. The tool sets it from the computer's clock, then checks a
 
 Source is in `source/`. Compile `detector_clock.c` and `sha256.c`, with that directory on the include path. Linux uses a C11 compiler. A Windows GNU C build additionally links `setupapi`, `cfgmgr32` and `advapi32`. The shell launcher belongs beside the Linux executable.
 
-The initial release reuses the existing Windows and Linux binaries tested with the detector on 25 November 2026. The Linux protocol self-test was rerun on 26 November; publishing this package does not constitute a new hardware test. See the release checksums for exact file identity.
+The initial release used the binaries tested with the detector on 25 November 2026. The 26 November update improves Linux permission diagnostics without changing the clock protocol. Both native protocol test suites and self-tests pass; eight additional Linux tests use real pseudo-terminals with restricted child credentials. This update does not constitute a new hardware clock-setting test. See release checksums for exact file identity.
