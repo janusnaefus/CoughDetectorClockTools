@@ -1,8 +1,15 @@
-# CoughDetector clock tools
+# CoughDetector computer tools
 
-Set the CoughDetector's clock from your computer. Connecting USB alone does not set it.
+Choose the tool for your task. Both downloads include Windows and Linux executables and source.
 
-[Download the Windows and Linux package](https://github.com/janusnaefus/CoughDetectorClockTools/releases/latest)
+| Task | Download | Instructions |
+|---|---|---|
+| Set the detector's UTC clock over USB | [Clock tools0.1.1](https://github.com/janusnaefus/CoughDetectorClockTools/releases/tag/v0.1.1) | Steps below |
+| Export copied magnetic BIN files to spreadsheet CSV | [Magnetic CSV converter0.1.0](https://github.com/janusnaefus/CoughDetectorClockTools/releases/tag/magnetic-csv-v0.1.0) | [CSV guide](magnetic-csv/README.md) |
+
+## Set the detector's clock
+
+Connecting USB alone does not set the clock. Download and extract the clock package.
 
 1. Extract the whole package to a folder on your computer.
 2. Finish recording and file transfers, close the detector's file-browser window, and connect USB.
@@ -10,7 +17,7 @@ Set the CoughDetector's clock from your computer. Connecting USB alone does not 
 4. Type `SET`, then check that the tool reports success and a clock-offset interval.
 5. Reconnect USB if needed to browse recordings again.
 
-No Python or firmware development tools are required. This repository contains only clock-setting tools and their source, not device firmware or recordings.
+No Python or firmware development tools are required. This repository contains the clock-setting and magnetic CSV utilities, their source and instructions.
 
 ## Requirements
 
